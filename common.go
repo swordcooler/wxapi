@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -45,17 +46,15 @@ func GenerateSign(secret string, params map[string]string) string {
 	sort.Strings(paramList)
 
 	var paramStr string
-	for k, v := range paramList {
-		paramStr += fmt.Sprint("%s=%s", v, params[v])
-		if k != len(paramList) {
-			paramStr += "&"
-		}
+	for _, v := range paramList {
+		paramStr += fmt.Sprintf("%s=%s&", v, params[v])
 	}
 
-	stringSignTemp := fmt.Sprintf("%s&key=%s", paramStr, secret)
-	md5w := md5.New()
-	io.WriteString(md5w, stringSignTemp)
-	sign := fmt.Sprintf("%x", md5w.Sum(nil))
+	stringSignTemp := fmt.Sprintf("%skey=%s", paramStr, secret)
+	h := md5.New()
+	io.WriteString(h, stringSignTemp)
+	sign := fmt.Sprintf("%x", h.Sum(nil))
 
+	sign = strings.ToUpper(sign)
 	return sign
 }
