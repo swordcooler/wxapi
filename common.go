@@ -1,7 +1,9 @@
 package wx
 
 import (
+	"crypto/hmac"
 	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"math/rand"
@@ -57,4 +59,11 @@ func GenerateSign(secret string, params map[string]string) string {
 
 	sign = strings.ToUpper(sign)
 	return sign
+}
+
+func GenerateLoginStatusSign(postData, sessionKey string) string {
+	mac := hmac.New(sha256.New, []byte(sessionKey))
+	mac.Write([]byte(postData))
+
+	return fmt.Sprintf("%x", mac.Sum(nil))
 }

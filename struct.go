@@ -58,3 +58,15 @@ type NotifyRequest struct {
 	Attach             string `json:"attach"`
 	TimeEnd            string `json:"time_end"`
 }
+
+type GetTokenResponse struct {
+	Errcode     int32  `json:"errcode"`
+	Errmsg      string `json:"errmsg"`
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int32  `json:"expires_in"`
+}
+
+type SetUserStorgeResponse struct {
+	Errcode int32  `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
+}

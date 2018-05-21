@@ -1,7 +1,9 @@
 package wx
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,8 +13,15 @@ import (
 )
 
 const (
-	LoginURL = "https://api.weixin.qq.com/sns/jscode2session"
-	OrderURL = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	LoginURL         = "https://api.weixin.qq.com/sns/jscode2session"
+	OrderURL         = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	GetTokenURL      = "https://api.weixin.qq.com/cgi-bin/token"
+	SetUserStorgeURL = "https://api.weixin.qq.com/wxa/set_user_storage"
+)
+
+var (
+	NoSupportMethod   = errors.New("nonsupport method")
+	UnifiedOrderError = errors.New("unified order error")
 )
 
 type APIProxy struct {
@@ -33,7 +42,7 @@ func (api *APIProxy) Login(jsCode string) (*JsCode2SessionResponse, error) {
 	params["grant_type"] = "authorization_code"
 
 	var response JsCode2SessionResponse
-	err := api.request(LoginURL, params, response)
+	err := api.request(http.MethodGet, "", LoginURL, params, response)
 	return &response, err
 }
 
@@ -55,7 +64,7 @@ func (api *APIProxy) UnifiedOrder(openid, tradeNo, body, totalFee, ipaddr string
 	var response UnifiedOrderResponse
 	var request PaymentRequest
 
-	err := api.request(OrderURL, params, response)
+	err := api.request(http.MethodGet, "", OrderURL, params, response)
 	if response.ReturnCode == "SUCCESS" &&
 		response.ResultCode == "SUCCESS" &&
 		len(response.PrePayID) > 0 {
@@ -74,12 +83,48 @@ func (api *APIProxy) UnifiedOrder(openid, tradeNo, body, totalFee, ipaddr string
 			SignType:  requsetParams["signType"],
 			PaySign:   paySign,
 		}
+	} else {
+		err = UnifiedOrderError
 	}
 	return &request, err
 }
 
-func (api *APIProxy) request(requestURL string, params map[string]string, result interface{}) error {
-	req, err := http.NewRequest("GET", requestURL, nil)
+func (api APIProxy) GetToken() (*GetTokenResponse, error) {
+	params := make(map[string]string)
+	params["appid"] = api.config.Appid
+	params["secret"] = api.config.Secret
+	params["grant_type"] = "client_credential"
+
+	var response GetTokenResponse
+	err := api.request(http.MethodGet, "", GetTokenURL, params, response)
+	return &response, err
+}
+
+func (api APIProxy) SetUserStorge(openid, accessToken, sessionKey string, kvList string) (*SetUserStorgeResponse, error) {
+	params := make(map[string]string)
+	params["appid"] = api.config.Appid
+	params["access_token"] = accessToken
+	params["signature"] = GenerateLoginStatusSign(kvList, sessionKey)
+	params["sig_method"] = "hmac_sha256"
+
+	var response SetUserStorgeResponse
+
+	err := api.request(http.MethodPost, kvList, SetUserStorgeURL, params, response)
+	return &response, err
+}
+
+func (api *APIProxy) request(method, requestBody, requestURL string, params map[string]string, result interface{}) error {
+	var req *http.Request
+	var err error
+	if method == http.MethodGet {
+		req, err = http.NewRequest(http.MethodGet, requestURL, nil)
+	} else if method == http.MethodPost {
+		requsetBody := bytes.NewReader([]byte(requestBody))
+		req, err = http.NewRequest(http.MethodGet, requestURL, requsetBody)
+	} else {
+		return NoSupportMethod
+	}
+
 	if err != nil {
 		return err
 	}
