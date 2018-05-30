@@ -140,7 +140,7 @@ func (api APIProxy) MidasGetBalance(openid, accessToken, pf string, isSanbox boo
 	calParams := make(map[string]interface{})
 	calParams["openid"] = openid
 	calParams["appid"] = api.config.Appid
-	calParams["offer_id"] = api.config.OfferID
+	calParams["offer_id"] = api.config.MidasOfferID
 	calParams["ts"] = time.Now().Unix()
 	calParams["zone_id"] = "1"
 	calParams["pf"] = pf
@@ -177,7 +177,7 @@ func (api *APIProxy) MidasPay(openid, accessToken, pf, billno string, amt int32,
 	calParams := make(map[string]interface{})
 	calParams["openid"] = openid
 	calParams["appid"] = api.config.Appid
-	calParams["offer_id"] = api.config.OfferID
+	calParams["offer_id"] = api.config.MidasOfferID
 	calParams["ts"] = time.Now().Unix()
 	calParams["zone_id"] = "1"
 	calParams["amt"] = amt
@@ -216,7 +216,7 @@ func (api *APIProxy) MidasPresent(openid, accessToken, pf, billno string, presen
 	calParams := make(map[string]interface{})
 	calParams["openid"] = openid
 	calParams["appid"] = api.config.Appid
-	calParams["offer_id"] = api.config.OfferID
+	calParams["offer_id"] = api.config.MidasOfferID
 	calParams["ts"] = time.Now().Unix()
 	calParams["zone_id"] = "1"
 	calParams["bill_no"] = billno
@@ -255,7 +255,7 @@ func (api *APIProxy) MidasCannelPay(openid, accessToken, pf, billno string, isSa
 	calParams := make(map[string]interface{})
 	calParams["openid"] = openid
 	calParams["appid"] = api.config.Appid
-	calParams["offer_id"] = api.config.OfferID
+	calParams["offer_id"] = api.config.MidasOfferID
 	calParams["ts"] = time.Now().Unix()
 	calParams["zone_id"] = "1"
 	calParams["bill_no"] = billno
