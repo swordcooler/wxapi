@@ -67,3 +67,23 @@ func GenerateLoginStatusSign(postData, sessionKey string) string {
 
 	return fmt.Sprintf("%x", mac.Sum(nil))
 }
+
+func GenerateMidasSign(secret, path string, params map[string]interface{}) string {
+	paramList := make([]string, 0)
+	for k, _ := range params {
+		paramList = append(paramList, k)
+	}
+
+	sort.Strings(paramList)
+
+	var paramStr string
+	for _, v := range paramList {
+		paramStr += fmt.Sprintf("%s=%v&", v, params[v])
+	}
+	stringSignTemp := fmt.Sprintf("%sorg_loc=%s&method=POST&secret=%s", paramStr, path, secret)
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(stringSignTemp))
+
+	return fmt.Sprintf("%x", mac.Sum(nil))
+
+}

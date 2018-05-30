@@ -67,6 +67,39 @@ type GetTokenResponse struct {
 }
 
 type SetUserStorgeResponse struct {
+	Errcode int32 `json:"errcode"`
+	Errmsg  int32 `json:"errmsg"`
+}
+
+type MidasGetBalanceResponse struct {
+	Errcode    int32 `json:"errcode"`
+	Errmsg     int32 `json:"errmsg"`
+	Balance    int32 `json:"balance"`
+	GenBalance int32 `json:"gen_balance"`
+	FirstSave  bool  `json:"first_save"`
+	SaveAmt    int32 `json:"save_amt"`
+	SaveSum    int32 `json:"save_sum"`
+	CostSum    int32 `json:"cost_sum"`
+	PresentSum int32 `json:"present_sum"`
+}
+
+type MidasPayResponse struct {
+	Errcode        int32  `json:"errcode"`
+	Errmsg         int32  `json:"errmsg"`
+	Balance        int32  `json:"balance"`
+	BillNo         string `json:"bill_no"`
+	UsedGenBalance int32  `json:used_gen_balance"`
+}
+
+type MidasPresentResponse struct {
 	Errcode int32  `json:"errcode"`
-	Errmsg  string `json:"errmsg"`
+	Errmsg  int32  `json:"errmsg"`
+	Balance int32  `json:"balance"`
+	BillNo  string `json:"bill_no"`
+}
+
+type MidasCannelPayResponse struct {
+	Errcode int32  `json:"errcode"`
+	Errmsg  int32  `json:"errmsg"`
+	BillNo  string `json:"bill_no"`
 }

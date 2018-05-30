@@ -8,15 +8,24 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 )
 
 const (
-	LoginURL         = "https://api.weixin.qq.com/sns/jscode2session"
-	OrderURL         = "https://api.mch.weixin.qq.com/pay/unifiedorder"
-	GetTokenURL      = "https://api.weixin.qq.com/cgi-bin/token"
-	SetUserStorgeURL = "https://api.weixin.qq.com/wxa/set_user_storage"
+	LoginURL                  = "https://api.weixin.qq.com/sns/jscode2session"
+	OrderURL                  = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	GetTokenURL               = "https://api.weixin.qq.com/cgi-bin/token"
+	SetUserStorgeURL          = "https://api.weixin.qq.com/wxa/set_user_storage"
+	MidasGetBalanceURL        = "https://api.weixin.qq.com/cgi-bin/midas/getbalance"
+	MidasGetBalanceSandboxURL = "https://api.weixin.qq.com/cgi-bin/midas/sandbox/getbalance"
+	MidasPayURL               = "https://api.weixin.qq.com/cgi-bin/midas/pay"
+	MidasPaySandboxURL        = "https://api.weixin.qq.com/cgi-bin/midas/sandbox/pay"
+	MidasPresentURL           = "https://api.weixin.qq.com/cgi-bin/midas/present"
+	MidasPresentSandboxURL    = "https://api.weixin.qq.com/cgi-bin/midas/sandbox/present"
+	MidasCannelPayURL         = " https://api.weixin.qq.com/cgi-bin/midas/cancelpay"
+	MidasCannelPaySandboxURL  = "https://api.weixin.qq.com/cgi-bin/midas/sandbox/cancelpay"
 )
 
 var (
@@ -103,6 +112,7 @@ func (api APIProxy) GetToken() (*GetTokenResponse, error) {
 func (api APIProxy) SetUserStorge(openid, accessToken, sessionKey string, kvList string) (*SetUserStorgeResponse, error) {
 	params := make(map[string]string)
 	params["appid"] = api.config.Appid
+	params["openid"] = openid
 	params["access_token"] = accessToken
 	params["signature"] = GenerateLoginStatusSign(kvList, sessionKey)
 	params["sig_method"] = "hmac_sha256"
@@ -111,6 +121,159 @@ func (api APIProxy) SetUserStorge(openid, accessToken, sessionKey string, kvList
 
 	err := api.request(http.MethodPost, kvList, SetUserStorgeURL, params, response)
 	return &response, err
+}
+
+func (api APIProxy) MidasGetBalance(openid, accessToken, pf string, isSanbox bool) (*MidasGetBalanceResponse, error) {
+	requestURL := MidasGetBalanceURL
+	if isSanbox {
+		requestURL = MidasGetBalanceSandboxURL
+	}
+
+	urlFields, err := url.Parse(requestURL)
+	if err != nil {
+		return nil, err
+	}
+
+	params := make(map[string]string)
+	params["access_token"] = accessToken
+
+	calParams := make(map[string]interface{})
+	calParams["openid"] = openid
+	calParams["appid"] = api.config.Appid
+	calParams["offer_id"] = api.config.OfferID
+	calParams["ts"] = time.Now().Unix()
+	calParams["zone_id"] = "1"
+	calParams["pf"] = pf
+	calParams["sig"] = GenerateMidasSign(api.config.MidasSecret, urlFields.Path, calParams)
+	calParams["access_token"] = accessToken
+	calParams["mp_sig"] = GenerateMidasSign(api.config.MidasSecret, urlFields.Path, calParams)
+
+	body, err := json.Marshal(calParams)
+	if err != nil {
+		return nil, err
+	}
+
+	var response MidasGetBalanceResponse
+
+	err = api.request(http.MethodPost, string(body), requestURL, params, response)
+	return &response, err
+
+}
+
+func (api *APIProxy) MidasPay(openid, accessToken, pf, billno string, amt int32, isSanbox bool) (*MidasPayResponse, error) {
+	requestURL := MidasPayURL
+	if isSanbox {
+		requestURL = MidasPaySandboxURL
+	}
+
+	urlFields, err := url.Parse(requestURL)
+	if err != nil {
+		return nil, err
+	}
+
+	params := make(map[string]string)
+	params["access_token"] = accessToken
+
+	calParams := make(map[string]interface{})
+	calParams["openid"] = openid
+	calParams["appid"] = api.config.Appid
+	calParams["offer_id"] = api.config.OfferID
+	calParams["ts"] = time.Now().Unix()
+	calParams["zone_id"] = "1"
+	calParams["amt"] = amt
+	calParams["bill_no"] = billno
+	calParams["pf"] = pf
+	calParams["sig"] = GenerateMidasSign(api.config.MidasSecret, urlFields.Path, calParams)
+	calParams["access_token"] = accessToken
+	calParams["mp_sig"] = GenerateMidasSign(api.config.MidasSecret, urlFields.Path, calParams)
+
+	body, err := json.Marshal(calParams)
+	if err != nil {
+		return nil, err
+	}
+
+	var response MidasPayResponse
+
+	err = api.request(http.MethodPost, string(body), requestURL, params, response)
+	return &response, err
+
+}
+
+func (api *APIProxy) MidasPresent(openid, accessToken, pf, billno string, presentCount int32, isSanbox bool) (*MidasPresentResponse, error) {
+	requestURL := MidasPresentURL
+	if isSanbox {
+		requestURL = MidasPresentSandboxURL
+	}
+
+	urlFields, err := url.Parse(requestURL)
+	if err != nil {
+		return nil, err
+	}
+
+	params := make(map[string]string)
+	params["access_token"] = accessToken
+
+	calParams := make(map[string]interface{})
+	calParams["openid"] = openid
+	calParams["appid"] = api.config.Appid
+	calParams["offer_id"] = api.config.OfferID
+	calParams["ts"] = time.Now().Unix()
+	calParams["zone_id"] = "1"
+	calParams["bill_no"] = billno
+	calParams["present_counts"] = presentCount
+	calParams["pf"] = pf
+	calParams["sig"] = GenerateMidasSign(api.config.MidasSecret, urlFields.Path, calParams)
+	calParams["access_token"] = accessToken
+	calParams["mp_sig"] = GenerateMidasSign(api.config.MidasSecret, urlFields.Path, calParams)
+
+	body, err := json.Marshal(calParams)
+	if err != nil {
+		return nil, err
+	}
+
+	var response MidasPresentResponse
+
+	err = api.request(http.MethodPost, string(body), requestURL, params, response)
+	return &response, err
+
+}
+
+func (api *APIProxy) MidasCannelPay(openid, accessToken, pf, billno string, isSanbox bool) (*MidasCannelPayResponse, error) {
+	requestURL := MidasPresentURL
+	if isSanbox {
+		requestURL = MidasPresentSandboxURL
+	}
+
+	urlFields, err := url.Parse(requestURL)
+	if err != nil {
+		return nil, err
+	}
+
+	params := make(map[string]string)
+	params["access_token"] = accessToken
+
+	calParams := make(map[string]interface{})
+	calParams["openid"] = openid
+	calParams["appid"] = api.config.Appid
+	calParams["offer_id"] = api.config.OfferID
+	calParams["ts"] = time.Now().Unix()
+	calParams["zone_id"] = "1"
+	calParams["bill_no"] = billno
+	calParams["pf"] = pf
+	calParams["sig"] = GenerateMidasSign(api.config.MidasSecret, urlFields.Path, calParams)
+	calParams["access_token"] = accessToken
+	calParams["mp_sig"] = GenerateMidasSign(api.config.MidasSecret, urlFields.Path, calParams)
+
+	body, err := json.Marshal(calParams)
+	if err != nil {
+		return nil, err
+	}
+
+	var response MidasCannelPayResponse
+
+	err = api.request(http.MethodPost, string(body), requestURL, params, response)
+	return &response, err
+
 }
 
 func (api *APIProxy) request(method, requestBody, requestURL string, params map[string]string, result interface{}) error {
