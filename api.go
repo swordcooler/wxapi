@@ -24,7 +24,7 @@ const (
 	MidasPaySandboxURL        = "https://api.weixin.qq.com/cgi-bin/midas/sandbox/pay"
 	MidasPresentURL           = "https://api.weixin.qq.com/cgi-bin/midas/present"
 	MidasPresentSandboxURL    = "https://api.weixin.qq.com/cgi-bin/midas/sandbox/present"
-	MidasCannelPayURL         = " https://api.weixin.qq.com/cgi-bin/midas/cancelpay"
+	MidasCannelPayURL         = "https://api.weixin.qq.com/cgi-bin/midas/cancelpay"
 	MidasCannelPaySandboxURL  = "https://api.weixin.qq.com/cgi-bin/midas/sandbox/cancelpay"
 )
 
