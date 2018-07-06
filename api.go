@@ -51,7 +51,7 @@ func (api *APIProxy) Login(jsCode string) (*JsCode2SessionResponse, error) {
 	params["grant_type"] = "authorization_code"
 
 	var response JsCode2SessionResponse
-	err := api.request(http.MethodGet, "", LoginURL, params, response)
+	err := api.request(http.MethodGet, "", LoginURL, params, &response)
 	return &response, err
 }
 
@@ -105,7 +105,7 @@ func (api APIProxy) GetToken() (*GetTokenResponse, error) {
 	params["grant_type"] = "client_credential"
 
 	var response GetTokenResponse
-	err := api.request(http.MethodGet, "", GetTokenURL, params, response)
+	err := api.request(http.MethodGet, "", GetTokenURL, params, &response)
 	return &response, err
 }
 
@@ -119,7 +119,7 @@ func (api APIProxy) SetUserStorge(openid, accessToken, sessionKey string, kvList
 
 	var response SetUserStorgeResponse
 
-	err := api.request(http.MethodPost, kvList, SetUserStorgeURL, params, response)
+	err := api.request(http.MethodPost, kvList, SetUserStorgeURL, params, &response)
 	return &response, err
 }
 
@@ -155,7 +155,7 @@ func (api APIProxy) MidasGetBalance(openid, accessToken, pf string, isSanbox boo
 
 	var response MidasGetBalanceResponse
 
-	err = api.request(http.MethodPost, string(body), requestURL, params, response)
+	err = api.request(http.MethodPost, string(body), requestURL, params, &response)
 	return &response, err
 
 }
@@ -194,7 +194,7 @@ func (api *APIProxy) MidasPay(openid, accessToken, pf, billno string, amt int32,
 
 	var response MidasPayResponse
 
-	err = api.request(http.MethodPost, string(body), requestURL, params, response)
+	err = api.request(http.MethodPost, string(body), requestURL, params, &response)
 	return &response, err
 
 }
@@ -233,7 +233,7 @@ func (api *APIProxy) MidasPresent(openid, accessToken, pf, billno string, presen
 
 	var response MidasPresentResponse
 
-	err = api.request(http.MethodPost, string(body), requestURL, params, response)
+	err = api.request(http.MethodPost, string(body), requestURL, params, &response)
 	return &response, err
 
 }
@@ -271,7 +271,7 @@ func (api *APIProxy) MidasCannelPay(openid, accessToken, pf, billno string, isSa
 
 	var response MidasCannelPayResponse
 
-	err = api.request(http.MethodPost, string(body), requestURL, params, response)
+	err = api.request(http.MethodPost, string(body), requestURL, params, &response)
 	return &response, err
 
 }
@@ -310,6 +310,7 @@ func (api *APIProxy) request(method, requestBody, requestURL string, params map[
 	if err != nil {
 		return err
 	}
+
 	json.Unmarshal([]byte(body), result)
 
 	return nil
